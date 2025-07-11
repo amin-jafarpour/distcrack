@@ -47,6 +47,36 @@ The following figure demonstrates the scenario where peer gracefully disconnects
 ![Peer Disconnecting](./docs/images/6-peerdisc-interaction.png)
 
 
+## Data Types
+### Packet Data
+The following data types represent the packet types:
+|Type Name | GenPkt |
+|----------|--------|
+| Type Description | Generic packet (or GenPkt for short) is a packet type that is meant to store other high level packets. |
+| Type Attributes | (string PktType, string PayloadPktType, bytes PktBytes) PktType is set to Generic Packet. PayloadPktType is set to the name of the high level packet enclosed within this GenPkt. PktBytes stores the high-level packet in binary format. |
+
+|Type Name | PeerHelloPkt |
+|----------|--------------|
+| PeerHelloPkt | Peer Hello Packet or PeerHelloPkt is the first packet sent by peer to coordinator in order to start the handshake between the coordinator and the peer. |
+| Type Attributes | (string PktType, string IPv4, string IPv6, string MAC) PktType is set to "PeerHelloPkt". IPv4 is set to IPv4 address of the peer. IPv6 is optional and is set to IPv6 address of the peer. MAC is the MAC address of the peer. |
+
+
+| Type Name | CoordHelloPkt |
+|----------|--------------|
+| Type Description | Packet the coordinator sends to acknowledge PeerHelloPkt sent by a peer. It contains a Session ID field that is a unique string used to identify the session between the coordinator and the peer. |
+| Type Attributes | (string PktType, string SessionID, string Data) string is set to "CoordHelloPKt". SessionID is set to a unique string used to identify the session between the coordinator and the peer. Data is set to the password hash that is meant to be cracked. |
+
+
+| Type Name | PeerCkPtk |
+|----------|------------|
+| Type Description | Peer Checkpoint Packet or PeerCkPtk is the packet peer sends to coordinator upon reaching the predefined checkpoint that is meant to update the coordinator regarding how far peer got though its assigned job. | 
+| Type Attributes | (PktType, Checkpoint Ckpt, string SessionID) PktType is set to "PeerCkPkt". Ckpt is set to an instance of type Checkpoint that is meant to track progress made by a peer. SessionID is set to ession ID assigned to the session. |
+
+
+
+
+
+
 
 
 
