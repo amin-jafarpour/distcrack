@@ -1,0 +1,73 @@
+Cold-boot
+DMA
+JTAG
+LUKS key
+Evil-maid
+chroot
+
+hashcat, John the Ripper
+
+GPU cluster
+
+LUKS2
+
+argon2id
+
+Unified Kernel Images
+
+KDF
+
+b-mkpasswd-pbkdf2
+
+TPM
+
+shim
+
+ clevis-tpm2
+
+systemd-cryptenroll --tpm2-device
+
+initramfs
+
+iommu=force
+
+UEFI Capsule Updates
+
+SPI
+
+PAM 
+
+cryptsetup
+
+luksErase
+
+shred drives
+
+LUKS2-on-LVM
+
+UKI
+
+/boot/grub/grub.cfg
+
+grub-mkpasswd-pbkdf2 
+
+argon2id
+
+
+
+
+TODO:
+SSL/TLS
+Windows support
+dictionary attack
+GPU support
+
+
+
+
+
+
+
+
+
+
