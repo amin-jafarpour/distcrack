@@ -31,6 +31,24 @@ The following table lists and explains all packets involved:
 | PeerAlivePkt | Packet a peer sends in response to PeerProbPkt to tell the coordinator that it is indeed alive. | 
 | PeerDiscPkt | Packet a peer sends when it wishes to gracefully terminate the connection. It contains the peer's progress up to this time. |
 
+## Peer-Coordinator Interaction Scenarios
+The following figures represent typical interaction scenarios between a peer and the coordinator.
+
+The following figure demonstrates a successful interaction between the peer and the coordinator where the peer cracks the passwords: 
+![Successful Peer-Coordinator Interaction](./docs/images/3-successful-interaction.png)
+
+The following figure demonstrates the scenario where the peer timeouts waiting on the coordinator and sends a PeerProbPkt and coordinator responds back by sending a CoordAlivePkt:
+![CoordAlivePkt](./docs/images/4-coordalivepkt-interaction.png)
+
+The following figure demonstrates the scenario where the coordinator timeouts on the peer and sends a CoordProbPkt to which the peer responds by sending a PeerAlivePkt:
+![PeerAlivePkt](./docs/images/5-interaction-peeralivepkt.png)
+
+The following figure demonstrates the scenario where peer gracefully disconnects from the connection: 
+![Peer Disconnecting](./docs/images/6-peerdisc-interaction.png)
+
+
+
+
 
 
 
