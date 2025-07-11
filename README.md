@@ -72,6 +72,20 @@ The following data types represent the packet types:
 | Type Description | Peer Checkpoint Packet or PeerCkPtk is the packet peer sends to coordinator upon reaching the predefined checkpoint that is meant to update the coordinator regarding how far peer got though its assigned job. | 
 | Type Attributes | (PktType, Checkpoint Ckpt, string SessionID) PktType is set to "PeerCkPkt". Ckpt is set to an instance of type Checkpoint that is meant to track progress made by a peer. SessionID is set to ession ID assigned to the session. |
 
+| Type Name | PeerNewTaskPkt |
+|----------|------------|
+| Type Description | Peer New Task Packet or PeerNewTaskPkt is the packet a peer sends when it needs a new job. It is both sent at the beginning of the connection when the peer asks for its first job and also when the peer is done with its current job and wishes to work on another job. "job" means a set of passwords to crack. |
+| Type Attributes | (string PktType, string SessionID) PktType is set to "PeerNewTaskPkt". SessionID is set to session ID assigned to the session. |
+
+| Type Name | PeerDiscPkt | 
+|-----------|-------------|
+| Type Description | Peer Disconnect Packet or PeerDiscPkt is the packet a peer sends when it wishes to disconnect. It contains a checkpoint that stores the most recent breakthrough made by the peer. It is essentially a checkpoint packet that signals the end of the session. | 
+| Type Attributes | (string PktType, Checkpoint Ckpt, string SessionID ) PktType is set to "PeerDiscPkt". Checkpoint represents how much work a peer has done. SessionID is set to session ID assigned to the session.
+
+
+
+
+
 
 
 
