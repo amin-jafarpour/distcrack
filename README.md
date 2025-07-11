@@ -1,2 +1,98 @@
 # distcrack
 A distributed password hash cracker that distributes workload across participating node
+
+## Purpose
+This program is a distributed password hash cracker, which supports MD5, SHA256, SHA512, Bcrypt, and Yescrypt hashs. This program follows client-server architecture, where a coordinator, a.k.a, the server, assigns a list of passwords to hash to one or more peers, a.k.a, clients. The coordinator is responsible for accepting peer connections and assigning a list of passwords to be hashed to peers. On the other hand, peers are responsible for connecting to the coordinator, accepting a list of passwords to hash from the coordinator, and notifying the coordinator if a hashed password matches the actual password hash that is meant to be cracked. 
+
+
+## Network Protocol Overview  
+In this protocol, "client" and "server" of client-server architecture will be referred to as "peer" and "coordinator" respectively. So, coordinator is basically the server, and peer is the client. This protocol can work over any reliable network protocol such as TCP. And the term "job" refers to a set of password guesses given to a peer to try. The underlying reliable protocol chosen is TCP.  
+
+There are two groups of packets in this protocol, the ones sent by the peer and the ones sent by the coordinator. Packets sent by the peer are intended to be received by the coordinator, and packets sent by the coordinator are intended to be received by the peer. Peer packets and Coordinator packets are enclosed within a a "generic" packet that is sent and received directly over TCP. This "generic" packet is called Generic packet since it is meant to enclose other packets. Peer packets and Coordinator packets are converted to binary and are nested within the Generic Packet. Considering UDP and TCP protocols as an analogy, Generic Packet is the IP packet that encloses the higher level UDP and TCP packets.
+
+The following figure demonstrates the packet hierarchy: 
+![Packet Hierarchy](./docs/images/2-packet-hierarchy.png)
+
+
+The following table lists and explains all packets involved: 
+| Packet Name | Packet Description | 
+|-------------|--------------------|
+|GenPkt       |Generic Packet is the lower level packet that encloses all other high level packets and is the packet that is directly sent over TCP connection.|
+| PeerHelloPkt | Packet a peer sends to initiate connection with the coordinator.|
+| CoordHelloPkt | Packet coordinator sends back to acknowledge PeerHelloPkt. |
+| PeerNewTaskPkt | Packet peer sends when asking for a new job. |
+| CoordTaskPkt | Packet the coordinator sends in response to PeerNewTaskPkt that contains the job to be completed by the peer. |
+| PeerCkPtk | Peer Checkpoint packet that a peer sends to update the coordinator regarding its progress. | 
+| PeerSuccessPkt | Packet a peer sends if it successfully cracks the given password hash. | 
+| CoordDiscPkt | Packet the coordinator sends when it has found the password and wishes to stop the peers. Or when the coordinator wants to terminate even when the password has not been found. |
+| PeerProbPkt | Packet the peer sends to verify whether the coordinator is alive after a timeout. |
+| CoordAlivePkt | Packet the coordinator sends in response to PeerProbPkt to tell the peer that it is indeed alive. | 
+| CoordProbPkt | Packet the coordinator sends to verify whether a peer is alive after a timeout. | 
+| PeerAlivePkt | Packet a peer sends in response to PeerProbPkt to tell the coordinator that it is indeed alive. | 
+| PeerDiscPkt | Packet a peer sends when it wishes to gracefully terminate the connection. It contains the peer's progress up to this time. |
+
+
+
+
+
+
+
+
+
+
+## Password Representation
+
+A concise way of representing the range of password guesses was conceived in order to avoid flooding the network with long password strings. Instead of  sending a list of password strings, a set of integers is sent; this set of integers represent the passwords within a specific password list.
+
+The foregoing integer set is as follows:
+1. Inclusive starting index [of the password guesss set]
+2. Last index tried [of the password guesss set]
+3. Inclusive ending index [of the password guesss set]
+4. Password length
+
+For example, considering a password search space of only capital English alpabet letters A-Z, and given 
+the maximum password length of 3 characters, tge following are three set of integers: 
+
+Length one integer set: 
+1. Inclusive Starting Index = 0 
+2. Last Index tried  = -1
+3. Inclusive Ending Index = 26^1 = 26
+
+
+Length two integer set:
+1. Inclusive Starting Index = 0 
+2. Last Index tried  = -1
+3. Inclusive Ending Index = 26^2 = 676 
+
+Length three integer set:
+1. Inclusive Starting Index = 0 
+2. Last Index tried  = -1
+3. Inclusive Ending Index = 26^3 = 17576 
+
+
+For example, index 0 of length 1 set is  "A". And index 1 of length 2 sets is "AB" and so forth. 
+"Last Index tried" integer is used for checkpointing purposes. When the first password in the range is tried it is incremented to 0 meaning that the password represented by index 0 has been tried. And it is incremented as other passwords within the range are tried until it reaches "Inclusive Ending Index" integer at which point the entire range of passwords has been attempted. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+![Code Directory Structure](./docs/images/1-code-directory-structure.png)
+
