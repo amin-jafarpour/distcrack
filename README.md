@@ -80,7 +80,116 @@ The following data types represent the packet types:
 | Type Name | PeerDiscPkt | 
 |-----------|-------------|
 | Type Description | Peer Disconnect Packet or PeerDiscPkt is the packet a peer sends when it wishes to disconnect. It contains a checkpoint that stores the most recent breakthrough made by the peer. It is essentially a checkpoint packet that signals the end of the session. | 
-| Type Attributes | (string PktType, Checkpoint Ckpt, string SessionID ) PktType is set to "PeerDiscPkt". Checkpoint represents how much work a peer has done. SessionID is set to session ID assigned to the session.
+| Type Attributes | (string PktType, Checkpoint Ckpt, string SessionID ) PktType is set to "PeerDiscPkt". Checkpoint represents how much work a peer has done. SessionID is set to session ID assigned to the session. | 
+
+
+| **Type Name**      | `PeerSuccessPkt`                                                                 |
+|--------------------|----------------------------------------------------------------------------------|
+| **Type Description** | Peer Success Packet or `PeerSuccessPkt` is the packet peer sends when it successfully cracks the given password hash. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"PeerSuccessPkt"`  <br> - `string SuccessVal` → Cracked password in this case.  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+
+| **Type Name**      | `CoordDiscPkt`                                                                 |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Coordinator Disconnect Packet or `CoordDiscPkt` is the packet coordinator sends to peers when the password has been cracked. Whenever a peer sends a checkpoint or asks for another job, the coordinator sends this packet to tell the peer to terminate. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"CoordDiscPkt"`  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+| **Type Name**      | `CoordProbPkt`                                                                 |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Coordinator Probing Packet or `CoordProbPkt` is the packet coordinator sent when peer is still connected to the underlying TCP connection but has not been unresponsive. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"CoordProbPkt"`  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+
+| **Type Name**      | `PeerAlivePkt`                                                                 |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Peer Alive Packet or `PeerAlivePkt` is the packet sent by the peer in response to coordinator sending `CoordProbPkt` when coordinator is probing a peer to check whether the peer is alive or not. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"PeerAlivePkt"`  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+| **Type Name**      | `PeerProbPkt`                                                                 |
+|--------------------|-------------------------------------------------------------------------------|
+| **Type Description** | Peer Probing Packet is the packet peer sends to check whether the coordinator is alive or not. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"PeerProbPkt"`  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+| **Type Name**      | `CoordAlivePkt`                                                               |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Coordinator Alive Packet or `CoordAlivePkt` is the packet that coordinator sends in response to `PeerProbPkt` to tell the peer that it is alive. |
+| **Type Attributes** | - `string PktType` → Set to name of the type, here it is `"CoordAlivePkt"`  <br> - `string SessionID` → Session ID assigned to the session. |
+
+
+### Work Progress Data Types
+
+The following are data types defined to handle checkpointing and work progress: 
+
+| **Type Name**      | `WorkerInput`                                                                 |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | `WorkerInput` is the work given to a worker thread that hashes password hashes and compares it against the real hash meant to be cracked. |
+| **Type Attributes** | - `int Idx` → It is an index number used to keep track of a password guess such as `"123"` or `"ab"`.  <br> - `string Item` → It is the actual string representation of the password such as `"123"`. |
+
+
+| **Type Name**      | `WorkerOutput`                                                                |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | It is a data structure a worker thread produces in response to each `WorkerInput` instance given to it. It indicates whether the given password guess is indeed the **unhashed** password of the actual password hash. |
+| **Type Attributes** | - `int Idx` → It is an index number used to keep track of a password guess such as `"123"` or `"ab"`.  <br> - `boolean Success` → Indicates whether the given password, represented by the password index `Idx`, is the cracked password. |
+
+
+| **Type Name**      | `Checkpoint`                                                                  |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | It is a data structure that tracks the progress of a job assigned to a peer. “Job” means a set of password guesses to try. |
+| **Type Attributes** | - `integer InclusiveStartIdx` → First index of the given password length space permutation to try.  <br> - `integer InclusiveEndIdx` → Last index of the given password length space permutation to try.  <br> - `integer LatestCompletedIdx` → Most recent index of [`InclusiveStartIdx`, `InclusiveEndIdx`] range already tried.  <br> - `integer JobTypeID` → Length of the password. For example, `2` for `"12"` and `3` for `"123"`.  <br> - `integer list MajorPoints` → For each number in the `MajorPoints` list, when `LatestCompletedIdx` reaches that number, a checkpoint is due and must be sent to the coordinator.  <br> - `integer MajorPointIdx` → An index number that points to the latest checkpoint reached within the `MajorPoints` list. |
+
+
+### Command Line Argument Data Types 
+The following data types are filled with command line argument values specified by the user and given to the coordinator and the peer:
+
+| **Type Name**      | `CoordParams`                                                                 |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Coordinator Parameters or `CoordParams` is a data type that holds the sanitized command line arguments meant to be given to the coordinator. |
+| **Type Attributes** | - `integer TimeoutSeconds` → Number of seconds the coordinator waits on an unresponsive peer before it is considered a timeout.  <br> - `integer MaxTimeoutCounter` → Max number of timeouts that can occur in a row before the coordinator marks a peer as dead.  <br> - `string Data` → The real password hash to be cracked in this case.  <br> - `integer PartitionSize` → The number of password attempts assigned to each peer. May be lower if not enough guesses are left.  <br> - `integer InclusiveMaxPasswdLen` → Supposed maximum value of password length. For example, if 16 is specified, all passwords in the range [1, 16] are tried.  <br> - `string IPAddr` → IPv4 address that the server will be listening to.  <br> - `string Port` → Port number that the server will be listening to. |
+
+
+| **Type Name**      | `PeerParams`                                                                  |
+|--------------------|--------------------------------------------------------------------------------|
+| **Type Description** | Peer Parameters or `CoordParams` is a data type that holds the sanitized command line arguments meant to be given to the coordinator. |
+| **Type Attributes** | - `integer TimeoutSeconds` → Number of seconds peer waits on an unresponsive coordinator before it is considered a timeout.  <br> - `integer MaxTimeoutCounter` → Max number of timeouts that can occur in a row before peer marks the coordinator as dead.  <br> - `string IPAddr` → IPv4 address of the coordinator.  <br> - `string Port` → Port number of IPv4 where the coordinator is listening.  <br> - `integer ThreadNumber` → Number of worker threads to use. |
+
+
+### Abstract Program Design
+The following figure demonstrates the high level design of the program:  
+![Abstract Program Design](./docs/images/7-abstract-program-design.png)
+
+
+The following table explains the purpose and responsibility of the functions shown in the preceding figure: 
+| **Function Name**     | **Function Description**                                                                                                                                                                                                                                                                               |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `coordMiddleman()`    | `coordMiddleman()` is coordinator’s middleman function that is basically the “brain” of the coordinator. `coordMiddleman()` starts `handleCoordSend()` and `handleCoordRecv()` and uses `handleCoordRecv()` to receive incoming packets and `handleCoordSend()` to send outgoing packets. Note all three (`coordMiddleman()`, `handleCoordSend()`, and `handleCoordRecv()`) are run in separate threads and are operational until the end of the connection. If any of the three functions fails, the entire session fails. |
+| `handleCoordSend()`   | `handleCoordSend()` handles packet send functionality of the coordinator. `coordMiddleman()` tells `handleCoordSend()` what packet to send at any given time.                                                                                                                                           |
+| `handleCoordRecv()`   | `handleCoordRecv()` handles packet receive functionality of the coordinator. `handleCoordRecv()` notifies `coordMiddleman()` what kind of packet has been received and `coordMiddleman()` takes the necessary action based on the packet received.                                                     |
+| `peerMiddleman()`     | `peerMiddleman()` is the `coordMiddleman()`'s equivalent of the peer.                                                                                                                                                                                                                                   |
+| `handlePeerSend()`    | `handlePeerSend()` is the `handleCoordSend()`'s equivalent of the peer.                                                                                                                                                                                                                                 |
+| `handlePeerRecv()`    | `handlePeerRecv()` is the `handleCoordRecv()`'s equivalent of the peer.                                                                                                                                                                                                                                 |
+| `handlePeerJob()`     | `handlePeerJob()` deals with the actual password cracking process. It runs the number of worker threads specified and feeds password guesses to worker threads to hash, and then it aggregates the results from the worker threads to determine whether the password has been found.                     |
+
+
+
+### Coordinator State Transition Diagram
+![Coordinator FSM](./docs/images/8-coordinator-fsm.png)
+
+### Peer State Transition Diagram
+![Peer FSM](./docs/images/9-peer-fsm.png)
+
+
+
+
+
+
+
+
+
 
 
 
