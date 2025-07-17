@@ -4,6 +4,8 @@ A distributed password hash cracker that distributes workload across participati
 ### Purpose
 This program is a distributed password hash cracker, which supports MD5, SHA256, SHA512, Bcrypt, and Yescrypt hashs. This program follows client-server architecture, where a coordinator, a.k.a, the server, assigns a list of passwords to hash to one or more peers, a.k.a, clients. The coordinator is responsible for accepting peer connections and assigning a list of passwords to be hashed to peers. On the other hand, peers are responsible for connecting to the coordinator, accepting a list of passwords to hash from the coordinator, and notifying the coordinator if a hashed password matches the actual password hash that is meant to be cracked. 
 
+In addition, the purpose of this project was also to learn how distributed computing works under the hood. Concepts such as node coordination, job redistribution, job partitioning, checkpointing, probing, dynamic job assignment, and coordinator-peer architecture were learned and implemented in the project. 
+
 
 ### User Guide
 #### Directory Structure 
