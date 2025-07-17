@@ -1,11 +1,119 @@
 # distcrack
 A distributed password hash cracker that distributes workload across participating node
 
-## Purpose
+### Purpose
 This program is a distributed password hash cracker, which supports MD5, SHA256, SHA512, Bcrypt, and Yescrypt hashs. This program follows client-server architecture, where a coordinator, a.k.a, the server, assigns a list of passwords to hash to one or more peers, a.k.a, clients. The coordinator is responsible for accepting peer connections and assigning a list of passwords to be hashed to peers. On the other hand, peers are responsible for connecting to the coordinator, accepting a list of passwords to hash from the coordinator, and notifying the coordinator if a hashed password matches the actual password hash that is meant to be cracked. 
 
 
-## Network Protocol Overview  
+### User Guide
+#### Directory Structure 
+/distcrack/
+	go.mod	go.sum	main.go	distnet		hashcrack 
+/distcrack/hashcrack/
+	comb.go	crypt.go
+/distcrack/distnet/
+	checkpoint.go	coord.go	netpkt.go	netutil.go	peer.go
+
+| **File/Directory Name**                   | **File/Directory Purpose**                                                                                   |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `/disctrack/`                             | Parent directory of the project.                                                                             |
+| `/disctrack/go.mod`                       | Go module file                                                                                               |
+| `/disctrack/go.sum`                       | Go sum file                                                                                                   |
+| `/disctrack/main.go`                      | The main program of the project.                                                                             |
+| `/disctrack/hashcrack/`                   | Directory containing Go files related to password generation and password cracking.                          |
+| `/disctrack/hashcrack/comb.go`           | Go file to generate all possible combinations of ASCII values for given lengths.                             |
+| `/disctrack/hashcrack/crypt.go`          | Go file to hash a given string.                                                                              |
+| `/disctrack/distnet/`                     | Directory containing files related to distributed computing.                                                 |
+| `/disctrack/distnet/checkpoint.go`       | Go file that implements checkpointing.                                                                       |
+| `/disctrack/distnet/coord.go`            | Go file that implements the coordinator.                                                                     |
+| `/disctrack/distnet/netpkt.go`           | Go file that defines the custom packets of the protocol.                                                     |
+| `/disctrack/distnet/netutil.go`          | Go file that defines functions needed to implement the distributed protocol such as packet send and receive. |
+| `/disctrack/distnet/peer.go`             | Go file that implements the peer.                                                                            |
+
+
+#### Compiling
+cd ./distcrack
+go build main.go
+
+#### Running
+Running a peer with the minimum number of command line arguments requires specifying server address and specifying that the program is meant to be run as a peer as follows:
+
+./main.go -server=”192.168.0.2” -type=”peer”
+
+Running the coordinator with the minimum number of command line arguments requires specifying the password hash to be cracked and the address server will be listening to. By default the program runs as the server and it listens to the localhost address. Run as follows: 
+
+./main.go -server”192.168.0.2” -hash=’$1$0Ks5sWgj$eYvALz2Far8zFBbQ/XDQ01’
+
+If you have enclosed the hash value in double quotes, and you get a shell error, use single quotes instead. 
+
+#### Command Line Arguments and Flags
+  -attempt int
+    	Number of times connection can timeout after handshake before disconnecting. (default 10)
+  -checkpoint int
+    	How often to send a checkpoint. (default 1)
+  -hash string
+    	Hash to be decrypted (default " ")
+  -maxlen int
+    	Max length of password. (default 16)
+  -port int
+    	network port number (default 5000)
+  -server string
+    	IPv4 (default "127.0.0.1")
+  -thread int
+    	Number of threads to use. (default 8)
+  -timeout int
+    	Timeout in seconds (default 10)
+  -type string
+    	Type of code. Can be either coord or peer. (default "coord")
+  -work-size int
+    	Number of password attempts per job packet. (default 10000)
+
+The command line arguments that are meant for the coordinator are the following:
+-attempt int
+
+checkpoint int
+
+-hash string
+
+-maxlen int
+
+-port int
+
+-server string
+
+-timeout int
+
+-work-size int
+
+The command line arguments that are meant for a peer are the following:
+-attempt int
+
+-port int
+
+-server string
+
+-thread int
+
+-timeout int
+
+-type string // set to -type=”peer”
+
+Note: If a command line argument corresponding to the coordinator is specified for a peer and vice versa, the command line argument is ignored by the program. 
+
+#### Examples
+
+The following is an example of running the coordinator:
+![Example 1](./docs/images/10-example1.png)
+
+
+The following is an example of running a peer:
+![Example 2](./docs/images/11-example2.png)
+
+
+
+
+
+### Network Protocol Overview  
 In this protocol, "client" and "server" of client-server architecture will be referred to as "peer" and "coordinator" respectively. So, coordinator is basically the server, and peer is the client. This protocol can work over any reliable network protocol such as TCP. And the term "job" refers to a set of password guesses given to a peer to try. The underlying reliable protocol chosen is TCP.  
 
 There are two groups of packets in this protocol, the ones sent by the peer and the ones sent by the coordinator. Packets sent by the peer are intended to be received by the coordinator, and packets sent by the coordinator are intended to be received by the peer. Peer packets and Coordinator packets are enclosed within a a "generic" packet that is sent and received directly over TCP. This "generic" packet is called Generic packet since it is meant to enclose other packets. Peer packets and Coordinator packets are converted to binary and are nested within the Generic Packet. Considering UDP and TCP protocols as an analogy, Generic Packet is the IP packet that encloses the higher level UDP and TCP packets.
@@ -31,7 +139,7 @@ The following table lists and explains all packets involved:
 | PeerAlivePkt | Packet a peer sends in response to PeerProbPkt to tell the coordinator that it is indeed alive. | 
 | PeerDiscPkt | Packet a peer sends when it wishes to gracefully terminate the connection. It contains the peer's progress up to this time. |
 
-## Peer-Coordinator Interaction Scenarios
+### Peer-Coordinator Interaction Scenarios
 The following figures represent typical interaction scenarios between a peer and the coordinator.
 
 The following figure demonstrates a successful interaction between the peer and the coordinator where the peer cracks the passwords: 
@@ -47,8 +155,8 @@ The following figure demonstrates the scenario where peer gracefully disconnects
 ![Peer Disconnecting](./docs/images/6-peerdisc-interaction.png)
 
 
-## Data Types
-### Packet Data
+### Data Types
+#### Packet Data
 The following data types represent the packet types:
 |Type Name | GenPkt |
 |----------|--------|
@@ -183,35 +291,7 @@ The following table explains the purpose and responsibility of the functions sho
 ![Peer FSM](./docs/images/9-peer-fsm.png)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Password Representation
+### Password Representation
 
 A concise way of representing the range of password guesses was conceived in order to avoid flooding the network with long password strings. Instead of  sending a list of password strings, a set of integers is sent; this set of integers represent the passwords within a specific password list.
 
@@ -243,27 +323,6 @@ Length three integer set:
 
 For example, index 0 of length 1 set is  "A". And index 1 of length 2 sets is "AB" and so forth. 
 "Last Index tried" integer is used for checkpointing purposes. When the first password in the range is tried it is incremented to 0 meaning that the password represented by index 0 has been tried. And it is incremented as other passwords within the range are tried until it reaches "Inclusive Ending Index" integer at which point the entire range of passwords has been attempted. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ![Code Directory Structure](./docs/images/1-code-directory-structure.png)
 
