@@ -9,12 +9,14 @@ In addition, the purpose of this project was also to learn how distributed compu
 
 ### User Guide
 #### Directory Structure 
+```
 /distcrack/
 	go.mod	go.sum	main.go	distnet		hashcrack 
 /distcrack/hashcrack/
 	comb.go	crypt.go
 /distcrack/distnet/
 	checkpoint.go	coord.go	netpkt.go	netutil.go	peer.go
+```
 
 | **File/Directory Name**                   | **File/Directory Purpose**                                                                                   |
 |------------------------------------------|--------------------------------------------------------------------------------------------------------------|
@@ -34,21 +36,28 @@ In addition, the purpose of this project was also to learn how distributed compu
 
 
 #### Compiling
+```bash
 cd ./distcrack
 go build main.go
+```
 
 #### Running
 Running a peer with the minimum number of command line arguments requires specifying server address and specifying that the program is meant to be run as a peer as follows:
 
+```bash
 ./main.go -server=”192.168.0.2” -type=”peer”
+```
 
 Running the coordinator with the minimum number of command line arguments requires specifying the password hash to be cracked and the address server will be listening to. By default the program runs as the server and it listens to the localhost address. Run as follows: 
 
+```bash
 ./main.go -server”192.168.0.2” -hash=’$1$0Ks5sWgj$eYvALz2Far8zFBbQ/XDQ01’
+```
 
 If you have enclosed the hash value in double quotes, and you get a shell error, use single quotes instead. 
 
 #### Command Line Arguments and Flags
+```
   -attempt int
     	Number of times connection can timeout after handshake before disconnecting. (default 10)
   -checkpoint int
@@ -99,6 +108,7 @@ The command line arguments that are meant for a peer are the following:
 -timeout int
 
 -type string // set to -type=”peer”
+```
 
 Note: If a command line argument corresponding to the coordinator is specified for a peer and vice versa, the command line argument is ignored by the program. 
 
